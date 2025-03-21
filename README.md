@@ -59,7 +59,7 @@
 
 1. Клонировать репозиторий:
    ```sh
-   git clone https://github.com/your-repo.git
+   git clone https://github.com/tmwsw/MGC
    ```
 2. Установить зависимости:
    ```sh
