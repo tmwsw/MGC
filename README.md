@@ -37,6 +37,63 @@
 - CatBoost
 - Метрики временных рядов
 
+## Данные
+
+Исторические данные о рыночных ценах на арматуру за период 2015-2023 гг. Данные разбиты на:
+
+- `data/excel/sample_submission.xlsx` – пример выходного файла.
+- `data/excel/test.xlsx` – тестовый датасет.
+- `data/excel/train.xlsx` – обучающий датасет.
+- `data/excel/Грузоперевозки.xlsx` – данные о логистике.
+- `data/excel/Данные рынка стройматериалов.xlsx` – рыночные показатели.
+- `data/excel/Макропоказатели.xlsx` – макроэкономические данные.
+- `data/excel/Показатели рынка металла.xlsx` – показатели рынка металла.
+- `data/excel/Топливо.xlsx` – данные по топливу.
+- `data/excel/Цены на сырье.xlsx` – цены на сырье.
+- `data/excel/CHMF Акции.csv` – данные по акциям CHMF.
+- `data/excel/MAGN Акции.csv` – данные по акциям MAGN.
+- `data/excel/NLMK Акции.csv` – данные по акциям NLMK.
+- `data/excel/Индекс LME.xlsx` – данные по индексу LME.
+- `combined.df` – объединенные данные для обучения модели.
+- `predicted_procurement.xlsx` – результаты предсказания объема закупки.
+
+## Структура репозитория
+
+```
+MGC/
+│-- catboost_info/
+│-- data/
+│   │-- excel/
+│   │   │-- sample_submission.xlsx
+│   │   │-- test.xlsx
+│   │   │-- train.xlsx
+│   │   │-- Грузоперевозки.xlsx
+│   │   │-- Данные рынка стройматериалов.xlsx
+│   │   │-- Макропоказатели.xlsx
+│   │   │-- Показатели рынка металла.xlsx
+│   │   │-- Топливо.xlsx
+│   │   │-- Цены на сырье.xlsx
+│   │   │-- CHMF Акции.csv
+│   │   │-- MAGN Акции.csv
+│   │   │-- NLMK Акции.csv
+│   │   │-- Индекс LME.xlsx
+│-- other/
+│-- analytics.ipynb
+│-- analytics2.ipynb
+│-- app.py  # Приложение для получения предсказаний
+│-- catboost_model_Marin.ipynb  # Обучение CatBoost
+│-- catboostmodel_Marin.cbm  # Сохраненная модель CatBoost
+│-- main_Gorodetskaya.ipynb  # Альтернативная модель
+│-- main.ipynb  # Основной ноутбук
+│-- modal.ipynb  # Дополнительный анализ
+│-- processing_data.ipynb  # Обработка данных
+│-- random_forest_model.joblib  # Сохраненная модель Random Forest
+│-- README.md  # Текущий файл
+│-- requirements.txt  # Список зависимостей
+│-- test_model.ipynb  # Тестирование модели
+│-- xgboost_model.json  # Сохраненная модель XGBoost
+```
+
 ## Метрики модели Catboost(Марин)
 
 Оценка качества модели на тестовой выборке:
@@ -87,5 +144,4 @@
 
 ## Контакты
 
-Если у вас есть вопросы, предложения или замечания, свяжитесь со мной через [GitHub Issues](https://github.com/your-repo/issues).
-
+Если у вас есть вопросы, предложения или замечания, свяжитесь со мной через [GitHub Issues](https://github.com/tmwsw/MGC/issues).
