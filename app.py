@@ -10,11 +10,14 @@ st.set_page_config(page_title="Прогнозирование закупок", p
 
 # Заголовок приложения
 st.title("📈 Прогнозирование закупок с помощью CatBoost")
-st.markdown("""
+st.markdown(
+    """
     Это приложение позволяет загрузить данные в формате Excel и выполнить прогнозирование 
     с использованием CatBoost-модели. Результаты включают прогнозируемую цену и рекомендации 
     по количеству недель для закупки.
-""")
+"""
+)
+
 
 # Загрузка модели
 @st.cache_resource
@@ -23,40 +26,46 @@ def load_model():
     model.load_model("catboostmodel_Marin.cbm")  # Укажите путь к вашей модели
     return model
 
+
 model = load_model()
+
 
 # Функция для обработки данных и предсказаний
 def process_data(df):
     # Преобразуем дату
     df["dt"] = pd.to_datetime(df["dt"], dayfirst=True)
-    df.rename(columns={'Цена на арматуру': 'Price'}, inplace=True, errors='ignore')
+    df.rename(columns={"Цена на арматуру": "Price"}, inplace=True, errors="ignore")
 
     # Создаём признаки
-    if 'Price' in df.columns:
+    if "Price" in df.columns:
         df["Price_source"] = df["Price"].shift(1)
 
         # Заполняем NaN
-        df["Price_source"] = df["Price_source"].interpolate(method='linear')
+        df["Price_source"] = df["Price_source"].interpolate(method="linear")
         df["Price_source"] = df["Price_source"].fillna(df["Price_source"].mean())
 
     # Подготовка данных для предсказания
-    X_test = df[['Price_source']].iloc[1:, :]
+    X_test = df[["Price_source"]].iloc[1:, :]
     df = df.iloc[1:, :]
     df["Predicted_Price"] = np.expm1(model.predict(X_test))
 
-    # Функция для расчёта недель закупки
     def calculate_weeks(row):
-        if row["Predicted_Price"] > row["Price"] * 1.02:
-            return 6  # Цена растёт (+2%)
+        if row["Predicted_Price"] > row["Price"] * 1.04:
+            return 1  # Цена растёт (+4%) → минимальная закупка
+        elif row["Predicted_Price"] > row["Price"] * 1.025:
+            return 2  # Умеренный рост
+        elif row["Predicted_Price"] > row["Price"] * 1.01:
+            return 3  # Незначительный рост
         elif row["Predicted_Price"] > row["Price"]:
-            return 4  # Незначительный рост
-        elif row["Predicted_Price"] < row["Price"] * 0.98:
-            return 1  # Цена падает (-2%)
+            return 4  # Незначительный рост (стабильный)
+        elif row["Predicted_Price"] < row["Price"] * 0.975:
+            return 6  # Цена падает (-2%) → максимальная закупка
         else:
-            return 3  # Стабильная цена → средний объём закупки
+            return 5  # Стабильная цена → средний объём закупки
 
     df["Weeks_to_Procure"] = df.apply(calculate_weeks, axis=1)
     return df
+
 
 # Боковая панель для загрузки файла
 with st.sidebar:
@@ -64,11 +73,13 @@ with st.sidebar:
     uploaded_file = st.file_uploader("Загрузите Excel-файл", type=["xlsx"])
     st.markdown("---")
     st.markdown("### Инструкция")
-    st.markdown("""
+    st.markdown(
+        """
         1. Загрузите файл в формате Excel.
         2. Нажмите кнопку **Выполнить прогнозирование**.
         3. Результаты будут отображены ниже.
-    """)
+    """
+    )
 
 if uploaded_file is not None:
     # Чтение файла
@@ -91,16 +102,22 @@ if uploaded_file is not None:
             st.subheader("📈 График прогнозируемой цены")
             fig, ax = plt.subplots()
             ax.plot(result_df["dt"], result_df["Price"], label="Фактическая цена")
-            ax.plot(result_df["dt"], result_df["Predicted_Price"], label="Прогнозируемая цена", linestyle="--")
+            ax.plot(
+                result_df["dt"],
+                result_df["Predicted_Price"],
+                label="Прогнозируемая цена",
+                linestyle="--",
+            )
             ax.set_xlabel("Дата")
             ax.set_ylabel("Цена")
             ax.legend()
+            plt.xticks(rotation=45)
             st.pyplot(fig)
 
             # Скачивание результата
             st.subheader("📥 Скачать результаты")
             output = io.BytesIO()
-            result_df.to_excel(output, index=False, engine='openpyxl')
+            result_df.to_excel(output, index=False, engine="openpyxl")
             output.seek(0)
 
             st.download_button(
