@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import io
 from catboost import CatBoostRegressor
 import matplotlib.pyplot as plt
 
@@ -98,9 +99,13 @@ if uploaded_file is not None:
 
             # Скачивание результата
             st.subheader("📥 Скачать результаты")
+            output = io.BytesIO()
+            result_df.to_excel(output, index=False, engine='openpyxl')
+            output.seek(0)
+
             st.download_button(
-                label="Скачать как CSV",
-                data=result_df.to_csv(index=False).encode('utf-8'),
-                file_name="predicted_procurement.csv",
-                mime="text/csv",
+                label="Скачать как Excel",
+                data=output,
+                file_name="predicted_procurement.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             )
