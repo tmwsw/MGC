@@ -1,34 +1,42 @@
-import os
-import io
-import logging
-import asyncio
+import os                                         # работа с ОС
+
+import io                                         # работа с потоками ввода/вывода
+
+import logging                                    # логирование сообщений
+
+import asyncio                                    # работа с асинхронными процессами
+
 import pandas as pd
 import numpy as np
+
 import matplotlib.pyplot as plt
-from dotenv import load_dotenv, dotenv_values
-from aiogram import Bot, Dispatcher, types
+
+from dotenv import load_dotenv                     # загрузка переменных из .env
+
+from aiogram import Bot, Dispatcher                # работа с api телеграма
 from aiogram.types import FSInputFile
 from aiogram.filters import Command
 from aiogram.types import Message
+
 from catboost import CatBoostRegressor
 
-# Загрузка токена из .env
+# загрузка токена из .env
 load_dotenv()
 TOKEN = os.getenv("MY_KEY")
 
 if not TOKEN:
     raise ValueError("Ошибка: токен бота не найден. Проверьте файл .env")
 
-# Настройка логирования
+# настройка логирования
 logging.basicConfig(level=logging.INFO)
 
-# Инициализация бота
+# инициализация бота
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
-# Загрузка модели
+# загрузка модели
 model = CatBoostRegressor()
-model.load_model("catboostmodel_Marin.cbm")  # Укажите путь к вашей модели
+model.load_model("catboostmodel_Marin.cbm")  # путь к модели
 
 def process_data(df):
     df["dt"] = pd.to_datetime(df["dt"], dayfirst=True)
@@ -68,7 +76,7 @@ async def handle_document(message: Message):
     
     result_df = process_data(df)
     
-    # Создание графика
+    # создание графика
     fig, ax = plt.subplots()
     ax.plot(result_df["dt"], result_df["Price"], label="Фактическая цена")
     ax.plot(result_df["dt"], result_df["Predicted_Price"], label="Прогнозируемая цена", linestyle="--")
@@ -76,12 +84,12 @@ async def handle_document(message: Message):
     ax.set_ylabel("Цена")
     ax.legend()
     
-    # Сохранение графика
+    # сохранение графика
     plot_io = io.BytesIO()
     plt.savefig(plot_io, format='png')
     plot_io.seek(0)
     
-    # Подготовка Excel-файла
+    # подготовка Excel-файла
     output = io.BytesIO()
     result_df.to_excel(output, index=False, engine='openpyxl')
     output.seek(0)
