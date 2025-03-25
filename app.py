@@ -1,23 +1,15 @@
 import streamlit as st
-import pandas as pd
 import numpy as np
-import io
-from catboost import CatBoostRegressor
 import matplotlib.pyplot as plt
+import pandas as pd
+from catboost import CatBoostRegressor
+from datetime import datetime
 
 # Настройка страницы
 st.set_page_config(page_title="Прогнозирование закупок", page_icon="📊", layout="wide")
 
 # Заголовок приложения
 st.title("📈 Прогнозирование закупок с помощью CatBoost")
-st.markdown(
-    """
-    Это приложение позволяет загрузить данные в формате Excel и выполнить прогнозирование 
-    с использованием CatBoost-модели. Результаты включают прогнозируемую цену и рекомендации 
-    по количеству недель для закупки.
-"""
-)
-
 
 # Загрузка модели
 @st.cache_resource
@@ -26,103 +18,47 @@ def load_model():
     model.load_model("catboostmodel_Marin.cbm")  # Укажите путь к вашей модели
     return model
 
-
 model = load_model()
 
-
-# Функция для обработки данных и предсказаний
-def process_data(df):
-    # Преобразуем дату
-    df["dt"] = pd.to_datetime(df["dt"], dayfirst=True)
-    df.rename(columns={"Цена на арматуру": "Price"}, inplace=True, errors="ignore")
-
-    # Создаём признаки
-    if "Price" in df.columns:
-        df["Price_source"] = df["Price"].shift(1)
-
-        # Заполняем NaN
-        df["Price_source"] = df["Price_source"].interpolate(method="linear")
-        df["Price_source"] = df["Price_source"].fillna(df["Price_source"].mean())
-
-    # Подготовка данных для предсказания
-    X_test = df[["Price_source"]].iloc[1:, :]
-    df = df.iloc[1:, :]
-    df["Predicted_Price"] = np.expm1(model.predict(X_test))
-
-    def calculate_weeks(row):
-        if row["Predicted_Price"] > row["Price"] * 1.04:
-            return 1  # Цена растёт (+4%) → минимальная закупка
-        elif row["Predicted_Price"] > row["Price"] * 1.025:
-            return 2  # Умеренный рост
-        elif row["Predicted_Price"] > row["Price"] * 1.01:
-            return 3  # Незначительный рост
-        elif row["Predicted_Price"] > row["Price"]:
-            return 4  # Незначительный рост (стабильный)
-        elif row["Predicted_Price"] < row["Price"] * 0.975:
-            return 6  # Цена падает (-2%) → максимальная закупка
-        else:
-            return 5  # Стабильная цена → средний объём закупки
-
-    df["Weeks_to_Procure"] = df.apply(calculate_weeks, axis=1)
+# Загрузка исторических данных
+@st.cache_data
+def load_historical_data():
+    df = pd.read_excel("combined_df.xlsx")
+    df["dt"] = pd.to_datetime(df["dt"])
+    df = df.sort_values(by="dt")
     return df
 
+historical_prices = load_historical_data()
 
-# Боковая панель для загрузки файла
-with st.sidebar:
-    st.header("⚙️ Настройки")
-    uploaded_file = st.file_uploader("Загрузите Excel-файл", type=["xlsx"])
-    st.markdown("---")
-    st.markdown("### Инструкция")
-    st.markdown(
-        """
-        1. Загрузите файл в формате Excel.
-        2. Нажмите кнопку **Выполнить прогнозирование**.
-        3. Результаты будут отображены ниже.
-    """
-    )
+# Функция для расчета недель закупки
+def calculate_weeks(price, predicted_price):
+    if predicted_price > price * 1.04:
+        return 1  # Цена растёт (+4%) → минимальная закупка
+    elif predicted_price > price * 1.025:
+        return 2  # Умеренный рост
+    elif predicted_price > price * 1.01:
+        return 3  # Незначительный рост
+    elif predicted_price > price:
+        return 4  # Незначительный рост (стабильный)
+    elif predicted_price < price * 0.975:
+        return 6  # Цена падает (-2%) → максимальная закупка
+    else:
+        return 5  # Стабильная цена → средний объём закупки
 
-if uploaded_file is not None:
-    # Чтение файла
-    df = pd.read_excel(uploaded_file)
+# Ввод даты и цены пользователем
+date_input = st.date_input("Выберите дату для прогноза:", min_value=datetime.today())
+price = st.number_input("Введите текущую цену на арматуру:", min_value=0.0, format="%.2f")
 
-    # Показываем загруженные данные
-    st.subheader("📂 Загруженные данные")
-    st.dataframe(df.head(), use_container_width=True)
-
-    # Обработка данных и предсказание
-    if st.button("🚀 Выполнить прогнозирование", type="primary"):
-        with st.spinner("Выполняется прогнозирование..."):
-            result_df = process_data(df)
-
-            # Показываем результаты
-            st.subheader("📊 Результаты прогнозирования")
-            st.dataframe(result_df, use_container_width=True)
-
-            # Визуализация результатов
-            st.subheader("📈 График прогнозируемой цены")
-            fig, ax = plt.subplots()
-            ax.plot(result_df["dt"], result_df["Price"], label="Фактическая цена")
-            ax.plot(
-                result_df["dt"],
-                result_df["Predicted_Price"],
-                label="Прогнозируемая цена",
-                linestyle="--",
-            )
-            ax.set_xlabel("Дата")
-            ax.set_ylabel("Цена")
-            ax.legend()
-            plt.xticks(rotation=45)
-            st.pyplot(fig)
-
-            # Скачивание результата
-            st.subheader("📥 Скачать результаты")
-            output = io.BytesIO()
-            result_df.to_excel(output, index=False, engine="openpyxl")
-            output.seek(0)
-
-            st.download_button(
-                label="Скачать как Excel",
-                data=output,
-                file_name="predicted_procurement.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            )
+if st.button("🔮 Рассчитать прогноз", type="primary"):
+    if price > 0:
+        days_ahead = (date_input - datetime.today().date()).days
+        predicted_price = np.expm1(model.predict([[price, days_ahead]])[0])
+        weeks = calculate_weeks(price, predicted_price)
+        
+        st.subheader("📊 Результаты прогнозирования")
+        st.write(f"📅 **Дата прогноза:** {date_input}")
+        st.write(f"🔹 **Прогнозируемая цена:** {predicted_price:.2f}")
+        st.write(f"📅 **Рекомендация по закупке:** {weeks} недель")
+        
+    else:
+        st.warning("Введите корректную цену (больше 0)")
