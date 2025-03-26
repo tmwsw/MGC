@@ -5,7 +5,6 @@ from catboost import CatBoostRegressor
 from datetime import datetime, timedelta
 import io
 import matplotlib.pyplot as plt
-import random
 
 # Настройка страницы
 st.set_page_config(page_title="Рекомендации по закупкам", page_icon="📊", layout="wide")
