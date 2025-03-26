@@ -61,7 +61,7 @@
 
 ```
 MGC/
-│-- catboost_info/
+|-- __pycache__
 │-- data/
 │   │-- excel/
 │   │   │-- sample_submission.xlsx
@@ -73,25 +73,28 @@ MGC/
 │   │   │-- Показатели рынка металла.xlsx
 │   │   │-- Топливо.xlsx
 │   │   │-- Цены на сырье.xlsx
-│   │   │-- CHMF Акции.csv
-│   │   │-- MAGN Акции.csv
-│   │   │-- NLMK Акции.csv
-│   │   │-- Индекс LME.xlsx
+│   │-- CHMF Акции.csv
+│   │-- MAGN Акции.csv
+│   │-- NLMK Акции.csv
+│   │-- Индекс LME.xlsx
 │-- other/
+|   │-- analytics2.ipynb
+|   │-- bot_tg.py
+|   |-- main_Gorodetskaya.ipynb
+|   |-- main1.ipynb
+|   |-- model_Simbirchev.ipynb
+|   |-- py_Simbirchev.ipynb
+|-- .gitignore
+|-- analiz-1.ipynb
 │-- analytics.ipynb
-│-- analytics2.ipynb
 │-- app.py  # Приложение для получения предсказаний
-│-- catboost_model_Marin.ipynb  # Обучение CatBoost
-│-- catboostmodel_Marin.cbm  # Сохраненная модель CatBoost
-│-- main_Gorodetskaya.ipynb  # Альтернативная модель
-│-- main.ipynb  # Основной ноутбук
-│-- modal.ipynb  # Дополнительный анализ
+|-- combined_df.xlsx # Данные для обучения модели
+│-- main_model.cbm  # Сохраненная модель CatBoost
+│-- main.ipynb  # Обучение CatBoost
 │-- processing_data.ipynb  # Обработка данных
-│-- random_forest_model.joblib  # Сохраненная модель Random Forest
 │-- README.md  # Текущий файл
 │-- requirements.txt  # Список зависимостей
-│-- test_model.ipynb  # Тестирование модели
-│-- xgboost_model.json  # Сохраненная модель XGBoost
+|-- самолет_интенсив3_арматура_группа5.pptx # Презентация для представление проекта
 ```
 
 ## Метрики модели Catboost (Марин)
@@ -123,10 +126,9 @@ MGC/
 ## Структура репозитория
 
 - `main.ipynb` – ноутбук с кодом обучения модели.
-- `main.ipynb` – ноутбук для предсказания объема закупки.
 - `test.xlsx` – тестовый датасет с предсказаниями модели.
-- `model.pkl` – сериализованная модель.
-- `app/` – файлы приложения для категорийного менеджера.
+- `main_model.pkl` – сериализованная модель.
+- `app.py` – файлы приложения для категорийного менеджера.
 - `README.md` – текущий файл с описанием проекта.
 
 ## Запуск проекта
