@@ -54,7 +54,7 @@
 - `data/excel/MAGN Акции.csv` – данные по акциям MAGN.
 - `data/excel/NLMK Акции.csv` – данные по акциям NLMK.
 - `data/excel/Индекс LME.xlsx` – данные по индексу LME.
-- `combined.df` – объединенные данные для обучения модели.
+- `combined_df.xlsx` – объединенные данные для обучения модели.
 - `predicted_procurement.xlsx` – результаты предсказания объема закупки.
 
 ## Структура репозитория
@@ -85,7 +85,7 @@ MGC/
 |   |-- model_Simbirchev.ipynb
 |   |-- py_Simbirchev.ipynb
 |-- .gitignore
-|-- analiz-1.ipynb
+|-- analiz-1.ipynb # Анализ данных
 │-- analytics.ipynb
 │-- app.py  # Приложение для получения предсказаний
 |-- combined_df.xlsx # Данные для обучения модели
