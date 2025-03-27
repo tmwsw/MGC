@@ -40,20 +40,27 @@ def load_historical_data():
 model = load_model()
 historical_prices = load_historical_data()
 
+import numpy as np
+
 def calculate_weeks(price, predicted_prices):
-    # Рассчитываем изменения цен
-    changes = [(p - price) / price * 100 for p in predicted_prices]
-    
+    # Проверяем, есть ли достаточно данных
+    if len(predicted_prices) < 3:
+        return 3, "Недостаточно данных для точного прогноза"
+
+    # Берем несколько контрольных точек (последнюю, предпоследнюю и через 1)
+    selected_prices = [predicted_prices[-1], predicted_prices[-2], predicted_prices[-3]]
+
+    # Рассчитываем изменения цен относительно текущей цены
+    changes = [(p - price) / price * 100 for p in selected_prices]
+
     # Ключевые метрики
     avg_change = np.mean(changes)
     max_change = np.max(changes)
     min_change = np.min(changes)
     volatility = max_change - min_change  # Размах колебаний
-    
-    # Определяем силу тренда
     trend_strength = abs(avg_change)
-    
-    # Новая логика с использованием всего диапазона 1-6 недель
+
+    # Логика принятия решений
     if avg_change > 0:  # При росте цен
         if trend_strength > 5 or volatility > 8:
             return 1, f"🚨 Срочная минимальная закупка (резкий рост до +{max_change:.1f}%)"
